@@ -1,0 +1,9 @@
+# This file exists to stop .gitignore from deciding the npm tarball. When
+# .npmignore is absent npm falls back to .gitignore, which excludes dist/ -
+# correct for the repo, wrong for the package, since dist/ IS the UI a published
+# install serves. The `files` allowlist in package.json decides what ships; this
+# only keeps machine-local junk out of it.
+node_modules/
+config.json
+*.log
+.DS_Store

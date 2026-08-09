@@ -20,7 +20,7 @@ Local-only. Zero config. Nothing to sign up for, nothing leaves your machine.
 ## Quickstart
 
 ```bash
-git clone https://github.com/kpachhai/fleet-debrief
+git clone https://github.com/kpachhai/fleet-debrief  # pii-allow:own-repo-url
 cd fleet-debrief
 npm install && npm run build
 npm start          # -> http://127.0.0.1:7317
@@ -48,7 +48,7 @@ every prompt you typed, every file the agent touched. So:
 
 v0. Claude Code is the only supported source today; the transcript reader,
 session model, and pricing engine are extracted from
-[agentic-os](https://github.com/kpachhai/agentic-os), where they run against
+[agentic-os](https://github.com/kpachhai/agentic-os), <!-- pii-allow:own-public-repo --> where they run against
 real multi-hundred-megabyte corpora. The run-vs-run diff aligns on tool-call
 structure (deliberately, not on prose — see the comment in `server/diff.ts`).
 

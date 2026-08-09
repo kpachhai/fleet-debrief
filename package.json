@@ -12,6 +12,12 @@
   "bin": {
     "fleet-debrief": "./bin/fleet-debrief.mjs"
   },
+  "files": [
+    "bin",
+    "server",
+    "dist",
+    "tsconfig.json"
+  ],
   "engines": {
     "node": ">=20.11"
   },
@@ -21,13 +27,12 @@
     "dev:ui": "vite",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.8",
     "hono": "^4.12.28",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
     "tsx": "^4.23.0"
   },
   "devDependencies": {
@@ -35,6 +40,8 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "typescript": "^6.0.3",
     "vite": "^8.1.3",
     "vitest": "^4.1.10"
