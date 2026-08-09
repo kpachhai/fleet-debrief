@@ -1,0 +1,42 @@
+{
+  "name": "fleet-debrief",
+  "version": "0.0.1",
+  "description": "The morning debrief for your AI agent fleet: what ran, what it cost, what it touched, and a diff between any two runs. Local-only, zero-config, reads what Claude Code already writes to disk.",
+  "author": "Kiran Pachhai",
+  "license": "Apache-2.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kpachhai/fleet-debrief.git"
+  },
+  "bin": {
+    "fleet-debrief": "./bin/fleet-debrief.mjs"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "start": "tsx server/index.ts",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:ui": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.8",
+    "hono": "^4.12.28",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tsx": "^4.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3",
+    "vitest": "^4.1.10"
+  }
+}
