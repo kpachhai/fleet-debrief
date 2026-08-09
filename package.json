@@ -28,7 +28,7 @@
     "url": "https://github.com/kpachhai/fleet-debrief/issues"
   },
   "bin": {
-    "fleet-debrief": "./bin/fleet-debrief.mjs"
+    "fleet-debrief": "bin/fleet-debrief.mjs"
   },
   "files": [
     "bin",
