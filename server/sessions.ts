@@ -175,16 +175,42 @@ function usageTokens(message: Record<string, unknown>): TokenTotals | null {
 }
 
 /**
+ * Terminal escape sequences, which show up whenever a record carries the output
+ * of a command that colorized itself or repainted its own progress line. They
+ * are invisible in a terminal and meaningless in a browser, where they render as
+ * literal noise - `Set model to \x1b[1mFable 5\x1b[22m` reads as
+ * `Set model to [1mFable 5 [22m` on screen.
+ *
+ * Three shapes, most specific first: CSI (colors, cursor moves, erase-line), OSC
+ * (window titles and hyperlinks, which run until a terminator), then any
+ * remaining two-character escape as cleanup.
+ */
+const ANSI_ESCAPE = /\x1b\[[0-9;:?]*[@-~]|\x1b\][\s\S]*?(?:\x07|\x1b\\)|\x1b./g;
+
+/**
+ * Strip escapes from text bound for a screen. The `includes` guard is not
+ * decoration: this runs on every record of every session, and the overwhelming
+ * majority of them contain no escape at all.
+ */
+function stripAnsi(text: string): string {
+  return text.includes("\x1b") ? text.replace(ANSI_ESCAPE, "") : text;
+}
+
+/**
  * Message content is either a plain string or an array of typed blocks. Pull the
  * prose out of both shapes and note every tool call, ignoring block kinds that
  * carry no text a reader would want.
+ *
+ * Escapes are removed here rather than at each display site because this is the
+ * single place display text is produced: session titles, the timeline, and the
+ * run-vs-run diff all read from it.
  */
 function readContent(message: Record<string, unknown>): {
   text: string;
   toolUses: string[];
 } {
   const content = message.content;
-  if (typeof content === "string") return { text: content, toolUses: [] };
+  if (typeof content === "string") return { text: stripAnsi(content), toolUses: [] };
   if (!Array.isArray(content)) return { text: "", toolUses: [] };
 
   const parts: string[] = [];
@@ -200,7 +226,7 @@ function readContent(message: Record<string, unknown>): {
       toolUses.push(str(block, "name") || "unknown");
     }
   }
-  return { text: parts.join("\n\n"), toolUses };
+  return { text: stripAnsi(parts.join("\n\n")), toolUses };
 }
 
 function tally(counts: Map<string, number>, key: string): void {

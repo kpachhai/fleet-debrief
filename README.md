@@ -17,19 +17,59 @@ questions no other tool answers together:
 
 Local-only. Zero config. Nothing to sign up for, nothing leaves your machine.
 
+![Two runs of the same task, aligned side by side: one lands it in 9 minutes for $0.30, the other spends 25 minutes and $1.00 retrying at the wrong layer](https://raw.githubusercontent.com/kpachhai/fleet-debrief/main/docs/demo.gif) <!-- pii-allow:own-repo-url -->
+
+Above: the same task run twice. The debrief lists both, you tick two boxes, and
+the diff shows where they parted company — one edited the checkout client, the
+other went hunting and retried at the wrong layer for three times the money.
+That comparison is the part no other tool does. The recording uses a synthetic
+corpus, because real transcripts carry paths and project names that cannot be
+published.
+
 ## Quickstart
+
+```bash
+npx fleet-debrief          # -> http://127.0.0.1:7317
+```
+
+That's it. If you've ever run Claude Code on this machine, the debrief is
+already populated — it reads `~/.claude/projects` retroactively, so your last
+weeks of sessions are there before you configure anything.
+
+The first run spends a few seconds compiling the server before it binds; after
+that it starts in well under a second.
+
+### Without a browser
+
+```bash
+npx fleet-debrief --print              # the debrief as terminal output
+npx fleet-debrief --print --since 7d   # a wider window
+```
+
+Output is plain text with no colour, so it survives a pipe, a redirect, and a
+paste into an issue.
+
+### Options
+
+```
+--print          write the debrief to stdout and exit, no browser
+--since <window> window to report on, e.g. 12h, 48h, 7d  (default 24h)
+--port <n>       port for the local UI and API            (default 7317)
+--version        print the version and exit
+-h, --help       print this message and exit
+```
+
+`--since` also decides the window the UI opens on, so `npx fleet-debrief --since 7d`
+lands on a week rather than a day.
+
+### From a checkout
 
 ```bash
 git clone https://github.com/kpachhai/fleet-debrief  # pii-allow:own-repo-url
 cd fleet-debrief
 npm install && npm run build
-npm start          # -> http://127.0.0.1:7317
+npm start
 ```
-
-That's it. If you've ever run Claude Code on this machine, the debrief is
-already populated — it reads `~/.claude/projects` retroactively, so your last
-weeks of sessions are there before you configure anything. (`npx fleet-debrief`
-ships once this is published to npm.)
 
 ## Privacy posture
 

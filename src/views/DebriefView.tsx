@@ -11,10 +11,17 @@ import { compact } from "../format.js";
 
 const WINDOWS = [12, 24, 48, 168];
 
+/** Days only once they read better than hours, so 48h stays 48h and 168h is 7d. */
+function windowLabel(hours: number): string {
+  return hours % 24 === 0 && hours >= 72 ? `${hours / 24}d` : `${hours}h`;
+}
+
 type Picked = { projectDir: string; sessionId: string };
 
 export function DebriefView() {
-  const [hours, setHours] = useState(24);
+  // null means "whatever the server was started with", so a --since flag decides
+  // the first window without the page having to fetch config before data.
+  const [hours, setHours] = useState<number | null>(null);
   const [debrief, setDebrief] = useState<Debrief | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [picked, setPicked] = useState<Picked[]>([]);
@@ -31,6 +38,14 @@ export function DebriefView() {
     if (!debrief) return 0;
     const t = debrief.totals.tokens;
     return t.input + t.output + t.cacheRead + t.cacheCreation;
+  }, [debrief]);
+
+  // A --since value outside the presets still needs a button, otherwise the
+  // window actually in effect appears nowhere on the page.
+  const windowChoices = useMemo(() => {
+    const active = debrief?.sinceHours;
+    if (active === undefined || WINDOWS.includes(active)) return WINDOWS;
+    return [...WINDOWS, active].sort((a, b) => a - b);
   }, [debrief]);
 
   const togglePick = (session: DebriefSession) => {
@@ -66,13 +81,13 @@ export function DebriefView() {
   return (
     <>
       <div className="controls">
-        {WINDOWS.map((w) => (
+        {windowChoices.map((w) => (
           <button
             key={w}
-            className={w === hours ? "active" : ""}
+            className={w === debrief.sinceHours ? "active" : ""}
             onClick={() => setHours(w)}
           >
-            {w === 168 ? "7d" : `${w}h`}
+            {windowLabel(w)}
           </button>
         ))}
         {diffHref ? (
@@ -92,7 +107,7 @@ export function DebriefView() {
 
       <div className="totals">
         <div className="stat derived">
-          <div className="label">cost ({debrief.sinceHours}h)</div>
+          <div className="label">cost ({windowLabel(debrief.sinceHours)})</div>
           <div className="value num">
             {money(debrief.totals.costUsd)}
             {debrief.totals.unpricedModels.length > 0 && (
@@ -133,8 +148,9 @@ export function DebriefView() {
 
       {debrief.projects.length === 0 && (
         <div className="empty">
-          No sessions in the last {debrief.sinceHours}h under{" "}
-          <code>~/.claude/projects</code>. Run something, then come back.
+          No sessions in the last {windowLabel(debrief.sinceHours)}. Try a wider
+          window above. If this machine has never run Claude Code, there are no
+          transcripts to read yet.
         </div>
       )}
 

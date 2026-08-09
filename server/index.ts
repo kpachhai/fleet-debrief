@@ -3,7 +3,7 @@ import path from "node:path";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { loadConfig, SourceMissingError, APP_ROOT } from "./config.js";
+import { loadConfigOrExit, SourceMissingError, APP_ROOT } from "./config.js";
 import { buildDebrief } from "./debrief.js";
 import { diffRuns } from "./diff.js";
 import { getSession, listSessions } from "./sessions.js";
@@ -35,7 +35,7 @@ function isLocalOrigin(value: string | undefined): boolean {
   }
 }
 
-const config = loadConfig();
+const config = loadConfigOrExit();
 const app = new Hono();
 
 app.use("/api/*", async (context, next) => {
@@ -60,11 +60,18 @@ app.onError((err, context) => {
 });
 
 app.get("/api/health", (context) =>
-  context.json({ ok: true, bind: BIND_HOST, transcriptsDir: config.transcriptsDir }),
+  context.json({
+    ok: true,
+    bind: BIND_HOST,
+    transcriptsDir: config.transcriptsDir,
+    defaultHours: config.defaultHours,
+  }),
 );
 
 app.get("/api/debrief", (context) => {
-  const hoursRaw = context.req.query("hours") ?? "24";
+  // No `hours` means "whatever this instance was started with", so `--since`
+  // decides the window the UI opens on without the client having to ask twice.
+  const hoursRaw = context.req.query("hours") ?? String(config.defaultHours);
   const hours = Number(hoursRaw);
   if (!Number.isFinite(hours) || hours <= 0) {
     return context.json({ error: `invalid hours: ${hoursRaw}` }, 400);

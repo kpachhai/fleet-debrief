@@ -144,15 +144,23 @@ export type RunDiff = {
 
 async function get<T>(url: string): Promise<T> {
   const response = await fetch(url);
-  const body = (await response.json()) as T & { error?: string };
+  const body = (await response.json()) as T & { error?: string; path?: string };
   if (!response.ok) {
-    throw new Error(body.error ?? `${response.status} on ${url}`);
+    // A missing source reports the path it looked at, and that path is the whole
+    // answer: "source missing" on its own leaves the reader nothing to act on.
+    const detail = body.path ? `${body.error}: ${body.path}` : body.error;
+    throw new Error(detail ?? `${response.status} on ${url}`);
   }
   return body;
 }
 
-export const fetchDebrief = (hours: number) =>
-  get<Debrief>(`/api/debrief?hours=${hours}`);
+/**
+ * Omitting `hours` is meaningful: the server then answers with the window it was
+ * started with, so `--since 7d` decides what the page opens on. The response
+ * always reports the window it used, so the caller never has to ask separately.
+ */
+export const fetchDebrief = (hours: number | null) =>
+  get<Debrief>(hours === null ? "/api/debrief" : `/api/debrief?hours=${hours}`);
 
 export const fetchSession = (projectDir: string, sessionId: string) =>
   get<SessionDetail>(
