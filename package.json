@@ -1,13 +1,31 @@
 {
   "name": "fleet-debrief",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "The morning debrief for your AI agent fleet: what ran, what it cost, what it touched, and a diff between any two runs. Local-only, zero-config, reads what Claude Code already writes to disk.",
   "author": "Kiran Pachhai",
   "license": "Apache-2.0",
   "type": "module",
+  "keywords": [
+    "claude-code",
+    "ai-agents",
+    "agent-observability",
+    "observability",
+    "session-replay",
+    "run-diff",
+    "debugging",
+    "cost-tracking",
+    "token-usage",
+    "local-first",
+    "cli",
+    "llm"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kpachhai/fleet-debrief.git"
+  },
+  "homepage": "https://github.com/kpachhai/fleet-debrief#readme",
+  "bugs": {
+    "url": "https://github.com/kpachhai/fleet-debrief/issues"
   },
   "bin": {
     "fleet-debrief": "./bin/fleet-debrief.mjs"

@@ -3,3 +3,7 @@ dist/
 config.json
 *.log
 .DS_Store
+
+# Local working notes. Deliberately untracked so it can hold anything useful
+# without it becoming published content.
+PENDING_TASKS.md
