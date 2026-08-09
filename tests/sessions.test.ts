@@ -90,6 +90,25 @@ beforeAll(() => {
     },
   ]);
 
+  // A first prompt that is a markdown document, which is the common case for a
+  // long handoff. The title must be a label; the body must survive untouched.
+  writeSession("66666666-6666-6666-6666-666666666666", [
+    userText(
+      "u1",
+      "# HANDOFF — continue the rename\n\n> This file is the complete state.\n\nI'm picking up mid-stream.",
+    ),
+  ]);
+
+  // Block markers other than a heading, and a nested one.
+  writeSession("77777777-7777-7777-7777-777777777777", [
+    userText("u1", "> - # dig into the flaky payment test"),
+  ]);
+
+  // Nothing but markers: no label can be made, so the id has to win.
+  writeSession("88888888-8888-8888-8888-888888888888", [
+    userText("u1", "###\n\n>\n\n- \n"),
+  ]);
+
   // Terminal escapes, as written by commands that colorize or repaint. The
   // transcript stores them JSON-escaped; once parsed they are real ESC bytes.
   writeSession("55555555-5555-5555-5555-555555555555", [
@@ -148,6 +167,37 @@ describe("session title derivation", () => {
     expect(titleOf("44444444-4444-4444-4444-444444444444")).toBe(
       "Rename the package",
     );
+  });
+});
+
+describe("markdown in a first prompt", () => {
+  it("names the run after the heading, not the whole document", () => {
+    expect(titleOf("66666666-6666-6666-6666-666666666666")).toBe(
+      "HANDOFF — continue the rename",
+    );
+  });
+
+  it("strips nested block markers", () => {
+    expect(titleOf("77777777-7777-7777-7777-777777777777")).toBe(
+      "dig into the flaky payment test",
+    );
+  });
+
+  it("falls back to the session id when the prompt is only markers", () => {
+    expect(titleOf("88888888-8888-8888-8888-888888888888")).toBe(
+      "88888888-8888-8888-8888-888888888888",
+    );
+  });
+
+  it("leaves the message body alone - markdown there is content, not decoration", () => {
+    const detail = getSession(
+      root,
+      "-tmp-proj",
+      "66666666-6666-6666-6666-666666666666",
+    );
+    const first = detail?.timeline.find((e) => e.uuid === "u1");
+    expect(first?.text).toContain("# HANDOFF — continue the rename");
+    expect(first?.text).toContain("> This file is the complete state.");
   });
 });
 

@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-server/
 config.json
 *.log
 .DS_Store

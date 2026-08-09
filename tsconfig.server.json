@@ -1,0 +1,19 @@
+{
+  // Emits the server as plain ESM so a published install runs it with node
+  // directly. Without this, every cold start pays for an on-the-fly TypeScript
+  // compile - about 8.6s on a machine that has never run the tool.
+  //
+  // The source already writes relative imports with a `.js` extension, which is
+  // what nodenext resolution requires, so the emitted output needs no rewriting.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist-server",
+    "rootDir": "server",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["server"]
+}

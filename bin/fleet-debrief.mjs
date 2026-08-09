@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * npx entry point. Runs the TypeScript server through tsx, which is a runtime
- * dependency, so a checkout (or an installed package) needs no build step for
- * the API - only the UI is built.
+ * npx entry point.
+ *
+ * A published install runs compiled JavaScript under plain node. A checkout that
+ * has not been built falls back to running the TypeScript through tsx, which is
+ * a dev dependency and so is present exactly when that fallback is needed.
  *
  * Flags are parsed here rather than in the server because one of them decides
  * which entry point runs at all: --print never starts a server.
  */
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -85,21 +88,30 @@ const since = valueFor(argv, "--since");
 if (since) env.FLEET_DEBRIEF_SINCE = since;
 
 const printMode = argv.includes("--print");
-const entry = path.join(here, "..", "server", printMode ? "print.ts" : "index.ts");
+const compiled = path.join(here, "..", "dist-server", printMode ? "print.js" : "index.js");
 
-if (!printMode) {
-  // This file is plain .mjs, so it runs before tsx compiles anything. That makes
-  // it the only place a first-run message can appear promptly: with a cold tsx
-  // cache the server takes several seconds to bind, and staying silent for that
-  // long is indistinguishable from a hang. In --print mode the output itself is
-  // the answer, so an extra line would only get in the way of a pipe.
+// tsx is resolved lazily: it is not a runtime dependency, so it is absent from a
+// published install, where the compiled entry always exists.
+let nodeArgs;
+let willCompile = false;
+if (fs.existsSync(compiled)) {
+  nodeArgs = [compiled];
+} else {
+  willCompile = true;
+  const source = path.join(here, "..", "server", printMode ? "print.ts" : "index.ts");
+  nodeArgs = [require.resolve("tsx/cli"), source];
+}
+
+if (!printMode && willCompile) {
+  // Only on the fallback path. This file is plain .mjs, so it runs before tsx
+  // compiles anything, which makes it the only place a message can appear before
+  // a multi-second wait that would otherwise look like a hang. The compiled path
+  // binds fast enough that the server's own banner is prompt, and in --print mode
+  // an extra line would only get in the way of a pipe.
   process.stdout.write(
-    "fleet-debrief: starting the local server (a first run takes a few seconds)\n",
+    "fleet-debrief: compiling the server, one moment (run npm run build to skip this)\n",
   );
 }
 
-const child = spawn(process.execPath, [require.resolve("tsx/cli"), entry], {
-  stdio: "inherit",
-  env,
-});
+const child = spawn(process.execPath, nodeArgs, { stdio: "inherit", env });
 child.on("exit", (code) => process.exit(code ?? 0));

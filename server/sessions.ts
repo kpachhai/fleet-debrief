@@ -197,6 +197,43 @@ function stripAnsi(text: string): string {
 }
 
 /**
+ * Markers that open a markdown block: headings, quotes, bullets, ordered items.
+ */
+const MARKDOWN_BLOCK_MARKER = /^\s*(?:#{1,6}\s+|>\s*|[-*+]\s+|\d+[.)]\s+)/;
+
+/**
+ * A one-line label for a run, from whatever the operator typed first.
+ *
+ * First prompts are routinely whole markdown documents, and flattening one into
+ * a single line drags its heading marker and the paragraph beneath it into the
+ * title: `# HANDOFF - continue this work > This file is the complete state...`.
+ * Taking the first line that carries words, minus its block marker, reads the
+ * way a commit subject does.
+ *
+ * Deliberately NOT applied to timeline text. Markdown in a message body is
+ * content the reader asked to see; only the title needs to be a label.
+ */
+function titleLine(prose: string): string {
+  for (const rawLine of prose.split("\n")) {
+    // Strip nested markers, so `> - note` reduces to `note`. Each pass removes
+    // at least one character, so this terminates.
+    let line = rawLine;
+    for (;;) {
+      const stripped = line.replace(MARKDOWN_BLOCK_MARKER, "");
+      if (stripped === line) break;
+      line = stripped;
+    }
+    // A line has to carry a word to be a label. This is what rules out the
+    // punctuation-only lines a markdown document is full of - `---` separators,
+    // `===` underlines, bare `###`, table rules - each of which would otherwise
+    // become the name of the run.
+    const text = line.trim();
+    if (/[\p{L}\p{N}]/u.test(text)) return text;
+  }
+  return "";
+}
+
+/**
  * Message content is either a plain string or an array of typed blocks. Pull the
  * prose out of both shapes and note every tool call, ignoring block kinds that
  * carry no text a reader would want.
@@ -522,10 +559,14 @@ function summarize(
   file: { sessionId: string; projectDir: string; mtimeMs: number; sizeBytes: number },
   skippedLines: number,
 ): SessionSummary {
-  const title = accumulator.aiTitle || accumulator.firstPrompt || file.sessionId;
+  // A harness-written title is already a label and is left alone; a first prompt
+  // has to be reduced to one. A prompt that is nothing but markdown markers
+  // yields no label at all, which correctly falls through to the session id.
+  const promptTitle = titleLine(accumulator.firstPrompt);
+  const title = accumulator.aiTitle || promptTitle || file.sessionId;
   const titleSource: SessionSummary["titleSource"] = accumulator.aiTitle
     ? "ai-title"
-    : accumulator.firstPrompt
+    : promptTitle
       ? "first-prompt"
       : "session-id";
 

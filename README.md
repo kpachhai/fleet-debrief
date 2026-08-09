@@ -36,8 +36,9 @@ That's it. If you've ever run Claude Code on this machine, the debrief is
 already populated — it reads `~/.claude/projects` retroactively, so your last
 weeks of sessions are there before you configure anything.
 
-The first run spends a few seconds compiling the server before it binds; after
-that it starts in well under a second.
+It installs three packages and binds in about a quarter of a second. The server
+ships compiled, so nothing is built at startup, and the only runtime dependencies
+are the HTTP layer.
 
 ### Without a browser
 
