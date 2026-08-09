@@ -42,8 +42,29 @@ export type RunDiff = {
    * the point of the whole exercise is what happens at this index.
    */
   divergenceIndex: number;
-  /** Steps aligned as identical, as a share of the longer run. */
+  /**
+   * Steps aligned as identical, as a share of the longer run.
+   *
+   * Read this as SHAPE similarity and nothing more. Two runs that took the same
+   * sequence of tool calls score 1 even when they were doing entirely unrelated
+   * work, which is not a hypothetical: sampling 70 pairs of real sessions turned
+   * up four scoring 1.0, and three of those four were different tasks. Prefer
+   * reporting `alignedSteps` of `comparedSteps`, which shows the reader how much
+   * evidence the figure rests on instead of hiding it behind a percentage.
+   */
   similarity: number;
+  /** Steps that aligned as identical. The numerator behind `similarity`. */
+  alignedSteps: number;
+  /** Steps compared, i.e. the length of the longer run. The denominator. */
+  comparedSteps: number;
+  /**
+   * True when there are too few steps for a shared shape to mean much. Short
+   * runs have few possible shapes, so matching is close to inevitable: among the
+   * sampled pairs, those scoring 90% or better averaged 7 turns while the rest
+   * averaged 256. The threshold is a judgment call from that measurement, not a
+   * derived constant.
+   */
+  shortRun: boolean;
   deltas: {
     durationMs: { a: number; b: number };
     messageCount: { a: number; b: number };
@@ -71,6 +92,12 @@ export type RunRef = {
  * of hundred-thousand-step transcripts would not be.
  */
 const MAX_STEPS = 1500;
+
+/**
+ * Below this many compared steps, a shared shape is weak evidence that two runs
+ * did the same thing - there simply are not many shapes a four-step run can take.
+ */
+const MIN_STEPS_FOR_SHAPE = 12;
 
 /**
  * Mainline conversation steps only. Sidechains are a subagent's own
@@ -205,6 +232,9 @@ export function diffRuns(a: SessionDetail, b: SessionDetail): RunDiff {
     ops,
     divergenceIndex,
     similarity: longer === 0 ? 1 : sameCount / longer,
+    alignedSteps: sameCount,
+    comparedSteps: longer,
+    shortRun: longer < MIN_STEPS_FOR_SHAPE,
     deltas: {
       durationMs: { a: runDurationMs(a), b: runDurationMs(b) },
       messageCount: { a: a.messageCount, b: b.messageCount },

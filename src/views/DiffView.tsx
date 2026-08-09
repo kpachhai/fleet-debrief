@@ -43,8 +43,15 @@ export function DiffView({
     <>
       <div className="controls">
         <a href="#/">← debrief</a>
-        <span className="hint">
-          {Math.round(diff.similarity * 100)}% aligned
+        {/*
+          The denominator is shown rather than a bare percentage on purpose.
+          "3 of 3 steps" reads as the weak evidence it is; "100% aligned" reads as
+          a finding. This compares tool-call shape, never wording, so identical
+          shape is not the same claim as identical work.
+        */}
+        <span className={diff.shortRun ? "hint bounded" : "hint"}>
+          same shape in {diff.alignedSteps} of {diff.comparedSteps} steps
+          {diff.shortRun ? " · too few steps to mean much" : ""}
           {diff.truncated ? " · long runs truncated for alignment" : ""}
         </span>
       </div>
@@ -126,7 +133,8 @@ export function DiffView({
         </h2>
         {diff.divergenceIndex === -1 ? (
           <p className="divergence-note">
-            The two runs share their entire aligned structure.
+            Same tool-call shape throughout — which is not the same as doing the
+            same work. Compare the text below before concluding anything.
           </p>
         ) : (
           <p className="divergence-note">

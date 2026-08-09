@@ -169,3 +169,54 @@ describe("diffRuns", () => {
     expect(diff.divergenceIndex).toBe(-1);
   });
 });
+
+/**
+ * Reporting discipline, from an empirical finding rather than a hunch: sampling
+ * 70 pairs of real sessions produced four scoring 1.0, and three of those four
+ * were unrelated tasks that merely took the same few steps. A bare percentage
+ * hides that; the numerator and denominator do not.
+ */
+describe("shape similarity is reported with its evidence", () => {
+  const shortShape = (id: string) => [
+    entry(0, "user"),
+    entry(1, "assistant", ["Read"]),
+    entry(2, "assistant", ["Edit"]),
+  ].map((e) => ({ ...e, uuid: `${id}-${e.uuid}` }));
+
+  it("flags a short run, even at a perfect score", () => {
+    const result = diffRuns(
+      detail("short-a", shortShape("a")),
+      detail("short-b", shortShape("b")),
+    );
+    expect(result.similarity).toBe(1);
+    expect(result.divergenceIndex).toBe(-1);
+    // The flag is the whole point: a perfect score over three steps is not
+    // evidence that two runs did the same work.
+    expect(result.shortRun).toBe(true);
+    expect(result.alignedSteps).toBe(3);
+    expect(result.comparedSteps).toBe(3);
+  });
+
+  it("does not flag a run long enough for shape to carry information", () => {
+    const long = (id: string) =>
+      Array.from({ length: 14 }, (_, i) =>
+        i % 2 === 0
+          ? entry(i, "user")
+          : entry(i, "assistant", [i % 4 === 1 ? "Read" : "Edit"]),
+      ).map((e) => ({ ...e, uuid: `${id}-${e.uuid}` }));
+    const result = diffRuns(detail("long-a", long("a")), detail("long-b", long("b")));
+    expect(result.shortRun).toBe(false);
+    expect(result.comparedSteps).toBe(14);
+    expect(result.alignedSteps).toBe(14);
+  });
+
+  it("always reports a denominator that matches the longer run", () => {
+    const a = diffRuns(
+      detail("x", shortShape("a")),
+      detail("y", [...shortShape("b"), entry(3, "assistant", ["Bash"])]),
+    );
+    expect(a.comparedSteps).toBe(4);
+    expect(a.alignedSteps).toBeLessThan(a.comparedSteps);
+    expect(a.similarity).toBeCloseTo(a.alignedSteps / a.comparedSteps, 10);
+  });
+});

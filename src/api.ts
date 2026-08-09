@@ -130,6 +130,9 @@ export type RunDiff = {
   ops: DiffOp[];
   divergenceIndex: number;
   similarity: number;
+  alignedSteps: number;
+  comparedSteps: number;
+  shortRun: boolean;
   deltas: {
     durationMs: { a: number; b: number };
     messageCount: { a: number; b: number };
