@@ -305,7 +305,7 @@ const HARNESS_STRAY_TAG = new RegExp(
  * What the operator actually typed, or "" when the record is nothing but
  * harness bookkeeping. Prose sharing a record with an envelope survives.
  */
-function operatorProse(text: string): string {
+export function operatorProse(text: string): string {
   return text
     .replace(HARNESS_BLOCK, " ")
     .replace(HARNESS_STRAY_TAG, " ")

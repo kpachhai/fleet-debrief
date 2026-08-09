@@ -1,4 +1,5 @@
 import { sessionCost } from "./debrief.js";
+import { operatorProse } from "./sessions.js";
 import type { SessionDetail, TimelineEntry, TokenTotals } from "./sessions.js";
 
 /**
@@ -128,8 +129,17 @@ function stepsOf(detail: SessionDetail): { steps: DiffStep[]; truncated: boolean
   };
 }
 
+/**
+ * The orientation label for one step. Harness command envelopes are dropped here
+ * for the same reason they are dropped from titles: this is a label, not the
+ * message body. A diff row reading `<command-message>team-digest</command-message>`
+ * tells the reader nothing, and the diff view is the one people screenshot.
+ *
+ * Stripping happens before the first line is taken, so an envelope followed by
+ * real prose yields the prose rather than an empty label.
+ */
 function firstLine(entry: TimelineEntry): string {
-  const line = entry.text.split("\n", 1)[0] ?? "";
+  const line = operatorProse(entry.text).split("\n", 1)[0] ?? "";
   return line.length > 160 ? `${line.slice(0, 160)}…` : line;
 }
 
