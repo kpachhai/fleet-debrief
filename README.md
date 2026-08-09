@@ -2,7 +2,7 @@
 
 **The morning debrief for your AI agent fleet.** One command. It reads the
 session transcripts Claude Code already writes to disk and answers three
-questions no other tool answers together:
+questions, with nothing to install into your workflow and nothing to configure:
 
 1. **What did my agents do while I was away?** Every session in the window —
    cost, duration, files touched, subagent activity, and the runs that need a
@@ -22,9 +22,13 @@ Local-only. Zero config. Nothing to sign up for, nothing leaves your machine.
 Above: the same task run twice. The debrief lists both, you tick two boxes, and
 the diff shows where they parted company — one edited the checkout client, the
 other went hunting and retried at the wrong layer for three times the money.
-That comparison is the part no other tool does. The recording uses a synthetic
-corpus, because real transcripts carry paths and project names that cannot be
-published.
+The comparison aligns runs on tool-call structure rather than wording, so the
+divergence it reports is a difference in what the agent *did*. Note what that
+means: two runs with the same shape and different content read as fully aligned,
+so the step count is shown alongside the verdict rather than a bare percentage.
+
+The recording uses a synthetic corpus, because real transcripts carry paths and
+project names that cannot be published.
 
 ## Quickstart
 

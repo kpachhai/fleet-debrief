@@ -1,6 +1,6 @@
 {
   "name": "fleet-debrief",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "The morning debrief for your AI agent fleet: what ran, what it cost, what it touched, and a diff between any two runs. Local-only, zero-config, reads what Claude Code already writes to disk.",
   "author": "Kiran Pachhai",
   "license": "Apache-2.0",
